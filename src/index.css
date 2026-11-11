@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-papan: #2B3A42;
+    --accent-kejaksaan: #8DC21F;
+    --row-tabel-hijau: #DCE9D0;
+    --row-tabel-teks: #1B292F;
+  }
+
+  html,
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #2B3A42;
+    color: #F1F5F9;
+    min-height: 100vh;
+    overflow-x: hidden !important;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  #root {
+    overflow-x: hidden !important;
+    max-width: 100vw;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  /* Tabular numbers for all numbers and dates */
+  .tabular-nums {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Custom vertical scrollbar, strictly disable horizontal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 0px;
+}
+::-webkit-scrollbar:horizontal {
+  display: none !important;
+  height: 0px !important;
+}
+::-webkit-scrollbar-track {
+  background: #1F2B32;
+}
+::-webkit-scrollbar-thumb {
+  background: #425864;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8DC21F;
+}
+
+/* Leaflet dark & tactical board styling */
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  width: 100%;
+  height: 100%;
+  background: #202D34 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #25333B !important;
+  color: #F1F5F9 !important;
+  border: 1px solid #8DC21F !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: #25333B !important;
+}
+
+.custom-sector-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.15s ease;
+}
+.custom-sector-marker:hover {
+  transform: scale(1.15);
+  z-index: 1000 !important;
+}

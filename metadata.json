@@ -1,0 +1,6 @@
+{
+  "name": "Papan Peta Intelijen Kejaksaan Negeri Tabanan",
+  "description": "Aplikasi Papan Data Peta Intelijen Kejaksaan Negeri Tabanan format D.IN.1 s.d. D.IN.11 dengan tabel SIADIBIBAM, peta interaktif, grafik Penkum/Luhkum, grafik perkara, dan ekspor PPTX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

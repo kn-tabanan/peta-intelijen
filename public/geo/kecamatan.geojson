@@ -1,0 +1,87 @@
+{
+  "type": "FeatureCollection",
+  "name": "Batas_Kecamatan_Tabanan",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Selemadeg Barat", "kode": "51.02.01", "ibu_kota": "Surabrata" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[114.920, -8.450], [114.965, -8.410], [114.995, -8.445], [114.985, -8.490], [114.940, -8.490], [114.920, -8.450]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Selemadeg", "kode": "51.02.02", "ibu_kota": "Bajera" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[114.985, -8.450], [115.040, -8.440], [115.050, -8.510], [114.990, -8.510], [114.985, -8.450]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Selemadeg Timur", "kode": "51.02.03", "ibu_kota": "Megati" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.040, -8.450], [115.085, -8.460], [115.080, -8.540], [115.040, -8.540], [115.040, -8.450]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Kerambitan", "kode": "51.02.04", "ibu_kota": "Kerambitan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.070, -8.510], [115.110, -8.515], [115.105, -8.570], [115.065, -8.560], [115.070, -8.510]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Tabanan", "kode": "51.02.05", "ibu_kota": "Kota Tabanan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.105, -8.510], [115.150, -8.510], [115.145, -8.560], [115.105, -8.555], [115.105, -8.510]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Kediri", "kode": "51.02.06", "ibu_kota": "Kediri" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.115, -8.550], [115.165, -8.550], [115.160, -8.615], [115.110, -8.605], [115.115, -8.550]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Marga", "kode": "51.02.07", "ibu_kota": "Marga" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.150, -8.450], [115.205, -8.455], [115.195, -8.515], [115.145, -8.510], [115.150, -8.450]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Penebel", "kode": "51.02.08", "ibu_kota": "Penebel" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.090, -8.380], [115.170, -8.385], [115.165, -8.460], [115.085, -8.450], [115.090, -8.380]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Baturiti", "kode": "51.02.09", "ibu_kota": "Baturiti" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[115.130, -8.260], [115.210, -8.275], [115.215, -8.380], [115.140, -8.375], [115.130, -8.260]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nama_kecamatan": "Pupuan", "kode": "51.02.10", "ibu_kota": "Pupuan" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[114.960, -8.320], [115.070, -8.310], [115.060, -8.400], [114.950, -8.390], [114.960, -8.320]]]
+      }
+    }
+  ]
+}
