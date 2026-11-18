@@ -35,7 +35,7 @@ import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    return dataService.getCurrentUser();
+    return dataService.getStoredSessionUser();
   });
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -167,12 +167,20 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    dataService.clearSessionUser();
     setCurrentUser(null);
   };
 
   // Jika belum login, tampilkan halaman Login
   if (!currentUser) {
-    return <LoginPage onLoginSuccess={(user) => setCurrentUser(user)} />;
+    return (
+      <LoginPage
+        onLoginSuccess={(user) => {
+          dataService.saveSessionUser(user);
+          setCurrentUser(user);
+        }}
+      />
+    );
   }
 
   return (

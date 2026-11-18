@@ -371,20 +371,41 @@ const INITIAL_PENKUM: PeneranganHukum[] = [
 ];
 
 class DataService {
-  // Session / User saat ini
-  getCurrentUser(): UserProfile {
+  // Session / User saat ini (mengembalikan null jika belum login)
+  getStoredSessionUser(): UserProfile | null {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_USER);
       if (stored) return JSON.parse(stored);
-    } catch (e) {
+    } catch {
       // ignore
     }
-    return DEMO_USERS.admin; // Default demo: Admin Kejari Tabanan
+    return null;
+  }
+
+  saveSessionUser(user: UserProfile): void {
+    try {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    } catch {
+      // ignore
+    }
+  }
+
+  clearSessionUser(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY_USER);
+    } catch {
+      // ignore
+    }
+  }
+
+  // Fallback internal user profile
+  getCurrentUser(): UserProfile {
+    return this.getStoredSessionUser() || DEMO_USERS.admin;
   }
 
   setCurrentUser(role: UserRole): UserProfile {
     const user = DEMO_USERS[role];
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user));
+    this.saveSessionUser(user);
     return user;
   }
 

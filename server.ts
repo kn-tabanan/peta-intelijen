@@ -9,6 +9,7 @@
 
 import express from 'express';
 import path from 'path';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import {
   fetchPerkaraDataWithResilience,
@@ -23,6 +24,63 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
+
+function safeCompareSecret(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) {
+    crypto.timingSafeEqual(bufA, bufA);
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+// 0. Endpoint Autentikasi /api/login menggunakan USER_LOGIN & USER_PASS dari .env
+app.post('/api/login', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const envUser = process.env.USER_LOGIN;
+  const envPass = process.env.USER_PASS;
+
+  if (!envUser || !envPass) {
+    return res.status(503).json({
+      success: false,
+      notConfigured: true,
+      message: 'Konfigurasi autentikasi server belum diatur (USER_LOGIN dan USER_PASS pada .env / Vercel Environment Variables).'
+    });
+  }
+
+  const username = String(req.body?.username || req.body?.email || '').trim();
+  const password = String(req.body?.password || '');
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Username/Email dan kata sandi wajib diisi.'
+    });
+  }
+
+  const userValid = safeCompareSecret(username.toLowerCase(), envUser.trim().toLowerCase());
+  const passValid = safeCompareSecret(password, envPass);
+
+  if (!userValid || !passValid) {
+    return res.status(401).json({
+      success: false,
+      message: 'Username/Email atau kata sandi tidak sesuai.'
+    });
+  }
+
+  const displayEmail = envUser.includes('@') ? envUser : `${envUser}@kejari-tabanan.go.id`;
+  return res.json({
+    success: true,
+    user: {
+      id: 'usr-admin-env',
+      email: displayEmail,
+      nama_lengkap: 'Administrator Seksi Intelijen',
+      jabatan: 'Kejaksaan Negeri Tabanan',
+      role: 'admin'
+    }
+  });
+});
 
 // 1. Endpoint Utama /api/perkara (juga mendukung ?action=health|cases|kecamatan seperti Vercel)
 app.get('/api/perkara', async (req, res) => {
