@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/perkara.ts": {
+      "includeFiles": "src/data/cms_tabanan_2026.json"
+    }
+  }
+}

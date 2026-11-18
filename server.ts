@@ -12,8 +12,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import {
   fetchPerkaraDataWithResilience,
-  CMS_API_DEFAULT_URL,
-  CMS_SATKER_TABANAN
+  checkCmsHealth
 } from './src/services/cmsPerkaraService';
 import { KECAMATAN_TABANAN } from './src/config/symbols.config';
 
@@ -25,11 +24,98 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
 
-// 1. Endpoint Statistik Perkara Multi-Tahun D.IN.11
+// 1. Endpoint Utama /api/perkara (juga mendukung ?action=health|cases|kecamatan seperti Vercel)
 app.get('/api/perkara', async (req, res) => {
+  const action = String(req.query.action || '').toLowerCase();
+  const forceRefresh = req.query.refresh === 'true';
+
+  if (action === 'health') {
+    res.setHeader('Cache-Control', 'no-store');
+    const health = await checkCmsHealth();
+    return res.json(health);
+  }
+
+  if (action === 'kecamatan') {
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
+    try {
+      const summary = await fetchPerkaraDataWithResilience(forceRefresh);
+      const data = KECAMATAN_TABANAN.map((kec) => {
+        const caseCount = summary.sebaranKecamatan[kec] || 0;
+        return {
+          kecamatan: kec,
+          penkum: Math.max(1, Math.round(caseCount * 0.15)),
+          luhkum: Math.max(2, Math.round(caseCount * 0.25)),
+          totalPeserta: Math.max(50, caseCount * 15),
+          totalPerkara: caseCount
+        };
+      });
+      return res.json({
+        status: summary.status,
+        source: summary.source,
+        isDown: summary.isDown,
+        totalCases: summary.totalCases,
+        data
+      });
+    } catch (err: any) {
+      return res.status(500).json({ status: 'error', error: err.message });
+    }
+  }
+
+  if (action === 'cases') {
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
+    try {
+      const summary = await fetchPerkaraDataWithResilience(forceRefresh);
+      let cases = summary.cases;
+
+      const q = String(req.query.q || '').trim().toLowerCase();
+      const kec = String(req.query.kecamatan || '').trim();
+      const polsek = String(req.query.polsek || '').trim().toLowerCase();
+
+      if (q) {
+        cases = cases.filter(
+          (c) =>
+            c.no_surat.toLowerCase().includes(q) ||
+            c.undang_pasal.toLowerCase().includes(q) ||
+            c.tempat_kejadian.toLowerCase().includes(q) ||
+            c.ur_ipp.toLowerCase().includes(q) ||
+            (c.tdw && c.tdw.toLowerCase().includes(q))
+        );
+      }
+
+      if (kec && kec !== 'SEMUA') {
+        cases = cases.filter((c) => c.kecamatan === kec);
+      }
+
+      if (polsek && polsek !== 'semua') {
+        cases = cases.filter((c) => c.ur_ipp.toLowerCase().includes(polsek));
+      }
+
+      const totalFiltered = cases.length;
+      const limit = Math.min(100, parseInt(String(req.query.limit || '50'), 10));
+      const offset = parseInt(String(req.query.offset || '0'), 10);
+      const paginated = cases.slice(offset, offset + limit);
+
+      return res.json({
+        status: 'success',
+        source: summary.source,
+        isDown: summary.isDown,
+        message: summary.message,
+        satker: summary.satker,
+        satkerName: summary.satkerName,
+        total: totalFiltered,
+        totalAll: summary.totalCases,
+        limit,
+        offset,
+        data: paginated
+      });
+    } catch (err: any) {
+      return res.status(500).json({ status: 'error', error: err.message });
+    }
+  }
+
+  // Default: Statistik Perkara Multi-Tahun D.IN.11
   const tahunMulai = parseInt(String(req.query.tahunMulai || '2023'), 10);
   const tahunSelesai = parseInt(String(req.query.tahunSelesai || '2026'), 10);
-  const forceRefresh = req.query.refresh === 'true';
 
   res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
 
@@ -61,14 +147,11 @@ app.get('/api/perkara', async (req, res) => {
   }
 });
 
-// 2. Endpoint Sebaran Perkara per 10 Kecamatan
+// 2. Endpoint Subpath Backward-Compatible (/api/perkara/kecamatan, /cases, /health)
 app.get('/api/perkara/kecamatan', async (req, res) => {
   res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=900');
-
   try {
-    const summary = await fetchPerkaraDataWithResilience();
-    
-    // Konversi sebaran kecamatan ke format array
+    const summary = await fetchPerkaraDataWithResilience(req.query.refresh === 'true');
     const data = KECAMATAN_TABANAN.map((kec) => {
       const caseCount = summary.sebaranKecamatan[kec] || 0;
       return {
@@ -79,7 +162,6 @@ app.get('/api/perkara/kecamatan', async (req, res) => {
         totalPerkara: caseCount
       };
     });
-
     return res.json({
       status: summary.status,
       source: summary.source,
@@ -92,18 +174,13 @@ app.get('/api/perkara/kecamatan', async (req, res) => {
   }
 });
 
-// 3. Endpoint Register Kasus Nyata PIDUM Tabanan (Pencarian & Filter)
 app.get('/api/perkara/cases', async (req, res) => {
   res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
-
   try {
     const summary = await fetchPerkaraDataWithResilience(req.query.refresh === 'true');
     let cases = summary.cases;
-
     const q = String(req.query.q || '').trim().toLowerCase();
     const kec = String(req.query.kecamatan || '').trim();
-    const polsek = String(req.query.polsek || '').trim().toLowerCase();
-
     if (q) {
       cases = cases.filter(
         (c) =>
@@ -114,20 +191,12 @@ app.get('/api/perkara/cases', async (req, res) => {
           (c.tdw && c.tdw.toLowerCase().includes(q))
       );
     }
-
     if (kec && kec !== 'SEMUA') {
       cases = cases.filter((c) => c.kecamatan === kec);
     }
-
-    if (polsek && polsek !== 'semua') {
-      cases = cases.filter((c) => c.ur_ipp.toLowerCase().includes(polsek));
-    }
-
     const totalFiltered = cases.length;
     const limit = Math.min(100, parseInt(String(req.query.limit || '50'), 10));
     const offset = parseInt(String(req.query.offset || '0'), 10);
-    const paginated = cases.slice(offset, offset + limit);
-
     return res.json({
       status: 'success',
       source: summary.source,
@@ -139,52 +208,17 @@ app.get('/api/perkara/cases', async (req, res) => {
       totalAll: summary.totalCases,
       limit,
       offset,
-      data: paginated
+      data: cases.slice(offset, offset + limit)
     });
   } catch (err: any) {
     return res.status(500).json({ status: 'error', error: err.message });
   }
 });
 
-// 4. Endpoint Health Check Server CMS Publik Kejaksaan
 app.get('/api/perkara/health', async (_req, res) => {
-  const start = Date.now();
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-    const checkRes = await fetch(CMS_API_DEFAULT_URL, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json'
-      }
-    });
-
-    clearTimeout(timeoutId);
-    const latencyMs = Date.now() - start;
-
-    return res.json({
-      online: checkRes.ok,
-      statusCode: checkRes.status,
-      latencyMs,
-      endpoint: CMS_API_DEFAULT_URL,
-      satker: CMS_SATKER_TABANAN,
-      message: checkRes.ok
-        ? 'Server CMS Publik Kejaksaan RI online dan merespons normal'
-        : `Server CMS merespons status ${checkRes.status}`
-    });
-  } catch (err: any) {
-    const latencyMs = Date.now() - start;
-    return res.json({
-      online: false,
-      statusCode: 0,
-      latencyMs,
-      endpoint: CMS_API_DEFAULT_URL,
-      satker: CMS_SATKER_TABANAN,
-      message: `Server CMS sedang offline/down: ${err.message}`
-    });
-  }
+  res.setHeader('Cache-Control', 'no-store');
+  const health = await checkCmsHealth();
+  return res.json(health);
 });
 
 async function startServer() {
